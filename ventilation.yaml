@@ -1,0 +1,55 @@
+substitutions:
+  slug: "ventilation"
+  name: "Ventilation"
+  description: "Mechanical ventilation WIFI module"
+  api_encryption_key: !secret HA_api_encryption_key
+
+esphome:
+  name: "${slug}"
+  comment: "${description}"
+  build_path: "./.build/test/${slug}/"
+
+esp8266:
+    framework:
+      version: latest
+    board: d1_mini_lite
+
+packages:
+  common: !include common/common.yaml
+
+output:
+  platform: esp8266_pwm
+  pin: 
+    number: D2
+    allow_other_uses: true
+  frequency: 2000 Hz
+  id: pwm_output
+  min_power: 0%
+  max_power: 100%
+  zero_means_zero: True
+
+fan:
+- platform: speed
+  id: fancomponent
+  name: "Fan Speed"
+  output: pwm_output
+  speed_count: 10
+  on_turn_on:
+    - logger.log: "Fan Turned On!"
+  on_turn_off:
+    - logger.log: "Fan Turned Off!"
+
+sensor:
+- platform: pulse_counter
+  id: fan_pulse
+  name: "Fan RPM"
+  pin: 
+    number: D2
+    allow_other_uses: true
+  unit_of_measurement: 'RPM'
+  filters:
+    - multiply: 0.5
+  count_mode:
+    rising_edge: INCREMENT
+    falling_edge: DISABLE
+  update_interval: 1s
